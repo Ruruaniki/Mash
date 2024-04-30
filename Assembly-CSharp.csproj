@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Assets\Script\Main_bak.cs" />
     <Compile Include="Assets\Script\Main.cs" />
+    <Compile Include="Assets\Script\Fade.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

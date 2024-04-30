@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2496431902824358788}
   - component: {fileID: 1751598452387534199}
   - component: {fileID: 2115853718823601619}
+  - component: {fileID: 8948978014651068894}
   m_Layer: 0
   m_Name: GrayCircle
   m_TagString: Untagged
@@ -98,3 +99,15 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!114 &8948978014651068894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5622456151261004324}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe7304de29605974ead78f3378d45a2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

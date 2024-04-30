@@ -65,17 +65,19 @@ public class Main : MonoBehaviour {
                 }
             }
         }
-        public void Main() {
+        public int Main() {
             int key, move;
+            //クリア判定
+            if (posX == startX && posY == startY && CheckGoal() == 1) return 1;
             key = InputKey();
+            //Debug.Log(key);
             if (key != 0) {
                 move = MoveBoard(key);
                 if (move == 0) se.PlayOneShot(ops);                 //動いてないとき
                 if (move == 1) se.PlayOneShot(click);               //動いたとき
-                if (move == 2) se.PlayOneShot(prev);                 //戻ったとき
-                //クリア判定
-                if (posX == startX && posY == startY) CheckGoal();
-        }
+                if (move == 2) se.PlayOneShot(prev);                //戻ったとき
+            }
+            return 0;
             //fade.SetColor("_EmissionColor", Color.HSVToRGB(0.0f, 0.0f, Mathf.Abs(Mathf.Sin(Time.time * 3.0f))));
             //counter++;
         }
@@ -98,7 +100,8 @@ public class Main : MonoBehaviour {
                     rootBoard[posX, posY] = 0;
                     posX += x;
                     posY += y;
-                    Destroy(barList.Pop());
+                    Destroy(barList.Peek(), barList.Peek().GetComponent<Fade>().Wait());
+                    barList.Pop().GetComponent<Fade>().DestInit();
                     return 2;
                 }
                 //マシュの効果
@@ -142,7 +145,7 @@ public class Main : MonoBehaviour {
             {
                 if (rootBoard[v.x, v.y] != 0) flag++;
             }
-            Debug.Log(flag);
+            //Debug.Log(flag);
             if (flag == mashPos.Count) return 1;
             return 0;
         }
@@ -165,6 +168,18 @@ public class Main : MonoBehaviour {
             //fade = objBoard[startX, startY].GetComponentsInChildren<Renderer>()[1].material;
             //fade.EnableKeyword("_EMISSION");
         }
+        public void DelBoard() {
+            for (int x = 0; x < boardX; x++) {
+                for (int y = 0; y < boardY; y++) {
+                    Destroy(objBoard[x, y], objBoard[x, y].GetComponent<Fade>().Wait());
+                    objBoard[x, y].GetComponent<Fade>().DestInit();
+                }
+            }
+            for (; barList.Count > 0; ) {
+                Destroy(barList.Peek(), barList.Peek().GetComponent<Fade>().Wait());
+                barList.Pop().GetComponent<Fade>().DestInit();
+            }
+        }
         public void BarSet(GameObject barObj) {
             bar = barObj;
         }
@@ -177,12 +192,12 @@ public class Main : MonoBehaviour {
     }
 
     Mash mash;
+    int f, stage;
 
     void Start() {
-        mash = new(3);
-        mash.MakeBoard(tile, mashA, mashB);
-        mash.BarSet(bar);
-        mash.AudioSet(se, click, prev, ops);
+        f = 0;
+        stage = 0;
+        MashInit(stage);
         //Debug.Log("" + -1 + "%" + 2 + "=" + (-1 % 2));
         //for (int x = -1; x <= 1; x++)
         //    for (int y = -1; y <= 1; y++)
@@ -190,6 +205,22 @@ public class Main : MonoBehaviour {
     }
 
     void Update() {
-        mash.Main();
+        if (f == 0) {
+            if (mash.Main() == 1) {
+                f = 1;
+                mash.DelBoard();
+            }
+        } else {
+            if (stage < 4) {
+                f = 0;
+                MashInit(++stage);
+            }
+        }
+    }
+    void MashInit(int n) {
+        mash = new(n);
+        mash.MakeBoard(tile, mashA, mashB);
+        mash.BarSet(bar);
+        mash.AudioSet(se, click, prev, ops);
     }
 }
