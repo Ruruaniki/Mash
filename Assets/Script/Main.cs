@@ -45,8 +45,14 @@ public class Main : MonoBehaviour {
             mashPos = new List<Vector2Int>();
             stageSelect = n;
             stageData = new string[] {
+                "0000000200000000010000000",
+                "0000001020000000202000000",
                 "0002000020001000000000020",
+                "2000202020000000202020102",
+                "0000003000000000001000000",
+                "0030000000300030000000100",
                 "0000003000301030300300000",
+                "0300000103030303000000030",
                 "0003000000001032002003000",
                 "0300000203021303000200030",
                 "2033032003021033020022022",
@@ -232,7 +238,7 @@ public class Main : MonoBehaviour {
                 }
             }
         } else {
-            if (stage < 4) {
+            if (stage < stageCount - 1) {
                 f = 0;
                 MashInit(++stage);
                 markObj = Instantiate(mark, new(-5.0f + 10.0f * stage / (stageCount - 1), 0, 4.0f), Quaternion.identity);
