@@ -310,7 +310,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1004742520}
-  - component: {fileID: 1004742519}
   - component: {fileID: 1004742522}
   - component: {fileID: 1004742521}
   m_Layer: 0
@@ -320,27 +319,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1004742519
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1004742518}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f932cc8883cd724c9a790c13716cd05, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MoveSE: {fileID: 1004742521}
-  Frame: {fileID: 8537744304525912056, guid: 7069a4bb0ad81764dac635591648c67b, type: 3}
-  Select: {fileID: 8537744304525912056, guid: 7069a4bb0ad81764dac635591648c67b, type: 3}
-  Up: {fileID: 1098531427320960920, guid: 861446677d1d0924eab1111b4c4b3502, type: 3}
-  Down: {fileID: 6114283884448490700, guid: 000dd8434eaa7d14582b13b91914a7ed, type: 3}
-  Right: {fileID: 4526142591814349128, guid: 2178aabae1303a042a9f76a34b94ef6a, type: 3}
-  Left: {fileID: 8270197354921586451, guid: 511a99f18823566418b127e7130ee03a, type: 3}
-  Corner: {fileID: 2316564167465000845, guid: 408f4665790474541813250dc40a7d5d, type: 3}
-  Straight: {fileID: 245367553357130998, guid: 04bbbdc7f6709e7409b4a28a0ab5966d, type: 3}
 --- !u!4 &1004742520
 Transform:
   m_ObjectHideFlags: 0

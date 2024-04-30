@@ -9,7 +9,7 @@ public class Main : MonoBehaviour {
     public GameObject mashB;        //緑色のマシュのオブジェクト
     public GameObject bar;          //バーのオブジェクト
     class Mash {
-        //int counter;                //メイン関数を呼び出した回数
+        //int counter;              //メイン関数を呼び出した回数
         int boardX;                 //盤面全体のXサイズ
         int boardY;                 //盤面全体のYサイズ
         int startX;                 //スタート地点のX座標
@@ -23,7 +23,7 @@ public class Main : MonoBehaviour {
         GameObject bar;             //バーのオブジェクト
         GameObject[,] objBoard;     //盤面のオブジェクトデータ
         Stack<GameObject> barList;  //バーのオブジェクトデータ
-        List<Vector2Int> mashPos;      //マシュの座標データのリスト
+        List<Vector2Int> mashPos;   //マシュの座標データのリスト
         Material fade;              //選択中のフェード処理
         public Mash() {
             //counter = 0;
@@ -105,13 +105,13 @@ public class Main : MonoBehaviour {
                     if (flag == mashPos.Count) return 1;
                 }
                 //デバッグ用
-                string debug = "";
-                for (y = boardY - 1; y >= 0; y--) {
-                    for (x = 0; x < boardX; x++)
-                        debug += "" + (rootBoard[x, y] != 0 ? (rootBoard[x, y] + 3) : 0);
-                    debug += "\n";
-                }
-                Debug.Log(debug);
+                //string debug = "";
+                //for (y = boardY - 1; y >= 0; y--) {
+                //    for (x = 0; x < boardX; x++)
+                //        debug += "" + (rootBoard[x, y] != 0 ? (rootBoard[x, y] + 3) : 0);
+                //    debug += "\n";
+                //}
+                //Debug.Log(debug);
             }
             return 0;
         }
@@ -144,6 +144,7 @@ public class Main : MonoBehaviour {
         mash = new();
         mash.MakeBoard(tile, mashA, mashB);
         mash.BarSet(bar);
+        //
         //Debug.Log("" + -1 + "%" + 2 + "=" + (-1 % 2));
         //for (int x = -1; x <= 1; x++)
         //    for (int y = -1; y <= 1; y++)
