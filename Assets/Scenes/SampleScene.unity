@@ -294,7 +294,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.5735764, y: 0, z: 0, w: 0.8191521}
-  m_LocalPosition: {x: 0, y: 7, z: -3}
+  m_LocalPosition: {x: 0, y: 6, z: -1.8}
   m_LocalScale: {x: 1, y: 0, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -464,10 +464,11 @@ MonoBehaviour:
   click: {fileID: 8300000, guid: 78891cff4597c1b4f8874d47c223b7d5, type: 3}
   prev: {fileID: 8300000, guid: 7bd690436dbc69847bcd7ca3dbc76c2e, type: 3}
   ops: {fileID: 8300000, guid: b4121b64e7f816744b143ab3cd92e746, type: 3}
-  tile: {fileID: 5622456151261004324, guid: 5c98ebbc3f9d5bd4ba14b7b5a8ff05e5, type: 3}
-  mashA: {fileID: 5833814679502310676, guid: 2874e6168b86ae64dbafb1073be6c723, type: 3}
-  mashB: {fileID: 5203021404002552477, guid: 9146b4eb7b9d076409a88fb3ac948d53, type: 3}
+  tile: {fileID: 380097829830954297, guid: c23d5b495eef812449c647d736d81981, type: 3}
+  mashA: {fileID: 7573161954199420938, guid: 8205d56034edd594eac755f6e912d875, type: 3}
+  mashB: {fileID: 8872550716832228126, guid: 633e873cf47c10d4c9800423571746c0, type: 3}
   bar: {fileID: 8097693864693980848, guid: 532ede59d9cd12040a6110a9988ddcbe, type: 3}
+  mark: {fileID: 7294266090633276231, guid: 6f31adba1525d63448116d7f55267e0e, type: 3}
 --- !u!1 &1158917731
 GameObject:
   m_ObjectHideFlags: 0

@@ -11,6 +11,8 @@ public class Main : MonoBehaviour {
     public GameObject mashA;        //青色のマシュのオブジェクト
     public GameObject mashB;        //緑色のマシュのオブジェクト
     public GameObject bar;          //バーのオブジェクト
+    public GameObject mark;         //進捗用のオブジェクト
+    private int stageCount;         //ステージ数
     class Mash {
         //int counter;              //メイン関数を呼び出した回数
         int boardX;                 //盤面全体のXサイズ
@@ -189,15 +191,26 @@ public class Main : MonoBehaviour {
             prev = se2;
             ops = se3;
         }
+        public int StageGet() {
+            return stageData.Length;            //ステージ数を返す
+        }
     }
 
     Mash mash;
+    List<GameObject> markList;
+    GameObject markObj;
     int f, stage;
 
     void Start() {
         f = 0;
         stage = 0;
         MashInit(stage);
+        stageCount = mash.StageGet();
+        markList = new List<GameObject>();
+        for (int i = 0; i < stageCount; i++) {
+            markList.Add(Instantiate(tile, new(-5.0f + 10.0f * i / (stageCount - 1), 0, 4.0f), Quaternion.identity));
+        }
+        markObj = Instantiate(mark, new(-5.0f, 0, 4.0f), Quaternion.identity);
         //Debug.Log("" + -1 + "%" + 2 + "=" + (-1 % 2));
         //for (int x = -1; x <= 1; x++)
         //    for (int y = -1; y <= 1; y++)
@@ -209,11 +222,20 @@ public class Main : MonoBehaviour {
             if (mash.Main() == 1) {
                 f = 1;
                 mash.DelBoard();
+                Destroy(markObj, markObj.GetComponent<Fade>().Wait());
+                markObj.GetComponent<Fade>().DestInit();
+                if (stage == stageCount - 1) {
+                    for (int i = 0; i < stageCount; i++) {
+                        Destroy(markList[i], markList[i].GetComponent<Fade>().Wait());
+                        markList[i].GetComponent<Fade>().DestInit();
+                    }
+                }
             }
         } else {
             if (stage < 4) {
                 f = 0;
                 MashInit(++stage);
+                markObj = Instantiate(mark, new(-5.0f + 10.0f * stage / (stageCount - 1), 0, 4.0f), Quaternion.identity);
             }
         }
     }
