@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Main : MonoBehaviour {
     public AudioSource se;
+    public AudioClip click;
+    public AudioClip prev;
+    public AudioClip ops;
     public GameObject tile;         //タイルのオブジェクト
     public GameObject mashA;        //青色のマシュのオブジェクト
     public GameObject mashB;        //緑色のマシュのオブジェクト
@@ -25,7 +28,11 @@ public class Main : MonoBehaviour {
         Stack<GameObject> barList;  //バーのオブジェクトデータ
         List<Vector2Int> mashPos;   //マシュの座標データのリスト
         Material fade;              //選択中のフェード処理
-        public Mash() {
+        AudioSource se;
+        AudioClip click;
+        AudioClip prev;
+        AudioClip ops;
+        public Mash(int n) {
             //counter = 0;
             boardX = 5;
             boardY = 5;
@@ -34,7 +41,7 @@ public class Main : MonoBehaviour {
             objBoard = new GameObject[boardX, boardY];
             barList = new Stack<GameObject>();
             mashPos = new List<Vector2Int>();
-            stageSelect = 0;
+            stageSelect = n;
             stageData = new string[] {
                 "0002000020001000000000020",
                 "0000003000301030300300000",
@@ -59,51 +66,65 @@ public class Main : MonoBehaviour {
             }
         }
         public void Main() {
-            InputKey();
-            fade.SetColor("_EmissionColor", Color.HSVToRGB(0.0f, 0.0f, Mathf.Abs(Mathf.Sin(Time.time * 3.0f))));
+            int key, move;
+            key = InputKey();
+            if (key != 0) {
+                move = MoveBoard(key);
+                if (move == 0) se.PlayOneShot(ops);                 //動いてないとき
+                if (move == 1) se.PlayOneShot(click);               //動いたとき
+                if (move == 2) se.PlayOneShot(prev);                 //戻ったとき
+                //クリア判定
+                if (posX == startX && posY == startY) CheckGoal();
+        }
+            //fade.SetColor("_EmissionColor", Color.HSVToRGB(0.0f, 0.0f, Mathf.Abs(Mathf.Sin(Time.time * 3.0f))));
             //counter++;
         }
-        public int InputKey() {
+        int InputKey() {
+            int flag = 0;
+            if (Input.GetKeyDown(KeyCode.LeftArrow)) flag += 1;
+            if (Input.GetKeyDown(KeyCode.DownArrow)) flag += 2;
+            if (Input.GetKeyDown(KeyCode.RightArrow)) flag += 4;
+            if (Input.GetKeyDown(KeyCode.UpArrow)) flag += 8;
+            return flag;
+        }
+        int MoveBoard(int key) {
             int x = 0, y = 0;
-            if (Input.GetKeyDown(KeyCode.LeftArrow) && posX > 0) x = -1;
-            if (Input.GetKeyDown(KeyCode.DownArrow) && posY > 0) y = -1;
-            if (Input.GetKeyDown(KeyCode.RightArrow) && posX < boardX - 1) x = 1;
-            if (Input.GetKeyDown(KeyCode.UpArrow) && posY < boardY - 1) y = 1;
+            if ((key & 1) == 1 && posX > 0) x = -1;
+            if ((key & 2) == 2 && posY > 0) y = -1;
+            if ((key & 4) == 4 && posX < boardX - 1) x = 1;
+            if ((key & 8) == 8 && posY < boardY - 1) y = 1;
             if (((x ^ y) & 1) == 1) {                                               //xかyがどちらか片方だけ0のとき
                 if (rootBoard[posX, posY] + 2 * x + y == 0) {                       //バーを撤去するとき
                     rootBoard[posX, posY] = 0;
                     posX += x;
                     posY += y;
                     Destroy(barList.Pop());
-                } else {
-                    //マシュの効果
-                    if (tileBoard[posX, posY] >= 2) {
-                        x *= (rootBoard[posX, posY] + tileBoard[posX, posY]) % 2;
-                        y *= (rootBoard[posX, posY] + tileBoard[posX, posY] + 1) % 2;
-                    }
-                    if (rootBoard[posX + x, posY + y] == 0) {                       //新しくバーを設置するとき
-                        posX += x;
-                        posY += y;
-                        //バーオブジェクトを生成
-                        Vector3 pos = new(1.0f * (posX - 0.5f * x - boardX / 2), 0.04f, 1.0f * (posY - 0.5f * y - boardY / 2));
-                        Quaternion rot = Quaternion.Euler(0, 90f * x, 0);
-                        barList.Push(Instantiate(bar, pos, rot));
-                        rootBoard[posX, posY] = 2 * x + y;                          //上:-1、下:1、左:-2、右:2
-                    }
+                    return 2;
+                }
+                //マシュの効果
+                if (tileBoard[posX, posY] >= 2) {
+                    x *= (rootBoard[posX, posY] + tileBoard[posX, posY]) % 2;
+                    y *= (rootBoard[posX, posY] + tileBoard[posX, posY] + 1) % 2;
+                }
+                if (rootBoard[posX + x, posY + y] == 0) {                       //新しくバーを設置するとき
+                    posX += x;
+                    posY += y;
+                    //バーオブジェクトを生成
+                    Vector3 pos = new(1.0f * (posX - 0.5f * x - boardX / 2), -0.1f, 1.0f * (posY - 0.5f * y - boardY / 2));
+                    //Vector3 pos = new(1.0f * (posX - boardX / 2), -0.1f, 1.0f * (posY - boardY / 2));
+                    Quaternion rot = Quaternion.Euler(0, 90f * x, 0);
+                    //Quaternion rot = Quaternion.identity;
+                    barList.Push(Instantiate(bar, pos, rot));
+                    //pos = objBoard[posX, posY].transform.position;
+                    //pos = new(pos.x, pos.y - 0.05f, pos.z);
+                    //objBoard[posX, posY].transform.position = pos;
+                    rootBoard[posX, posY] = 2 * x + y;                          //上:-1、下:1、左:-2、右:2
+                    return 1;
                 }
                 //フェードタイル変更
-                fade.SetColor("_EmissionColor", new Color(0, 0, 0));
-                fade = objBoard[posX, posY].GetComponentsInChildren<Renderer>()[1].material;
-                fade.EnableKeyword("_EMISSION");
-                //クリア判定
-                if (posX == startX && posY == startY) {
-                    int flag = 0;
-                    foreach (Vector2Int v in mashPos) {
-                        if (rootBoard[v.x, v.y] != 0) flag++;
-                    }
-                    Debug.Log(flag);
-                    if (flag == mashPos.Count) return 1;
-                }
+                //fade.SetColor("_EmissionColor", new Color(0, 0, 0));
+                //fade = objBoard[posX, posY].GetComponentsInChildren<Renderer>()[1].material;
+                //fade.EnableKeyword("_EMISSION");
                 //デバッグ用
                 //string debug = "";
                 //for (y = boardY - 1; y >= 0; y--) {
@@ -115,36 +136,53 @@ public class Main : MonoBehaviour {
             }
             return 0;
         }
+        int CheckGoal() {
+            int flag = 0;
+            foreach (Vector2Int v in mashPos)
+            {
+                if (rootBoard[v.x, v.y] != 0) flag++;
+            }
+            Debug.Log(flag);
+            if (flag == mashPos.Count) return 1;
+            return 0;
+        }
         public void MakeBoard(GameObject tile, GameObject mashA, GameObject mashB) {
             Vector3 pos;
             for (int x = 0; x < boardX; x++) {
                 for (int y = 0; y < boardY; y++) {
-                    //タイルの配置
-                    pos = new Vector3(1.0f * (x - boardX / 2), 0.0f, 1.0f * (y - boardY / 2));
-                    objBoard[x, y] = Instantiate(tile, pos, Quaternion.identity);
-                    //マシュの配置
                     if (tileBoard[x, y] >= 2) {
-                        pos = new Vector3(1.0f * (x - boardX / 2), 0.051f, 1.0f * (y - boardY / 2));
-                        Instantiate(tileBoard[x, y] == 2 ? mashA : mashB, pos, Quaternion.identity);
+                        //マシュの配置
+                        pos = new Vector3(1.0f * (x - boardX / 2), 0.0f, 1.0f * (y - boardY / 2));
+                        objBoard[x, y] = Instantiate(tileBoard[x, y] == 2 ? mashA : mashB, pos, Quaternion.identity);
+                    } else {
+                        //タイルの配置
+                        pos = new Vector3(1.0f * (x - boardX / 2), -0.05f, 1.0f * (y - boardY / 2));
+                        objBoard[x, y] = Instantiate(tile, pos, Quaternion.identity);
                     }
                 }
             }
             //選択中のタイルをフェードさせるための処理
-            fade = objBoard[startX, startY].GetComponentsInChildren<Renderer>()[1].material;
-            fade.EnableKeyword("_EMISSION");
+            //fade = objBoard[startX, startY].GetComponentsInChildren<Renderer>()[1].material;
+            //fade.EnableKeyword("_EMISSION");
         }
         public void BarSet(GameObject barObj) {
             bar = barObj;
+        }
+        public void AudioSet(AudioSource lis, AudioClip se1, AudioClip se2, AudioClip se3) {
+            se = lis;
+            click = se1;
+            prev = se2;
+            ops = se3;
         }
     }
 
     Mash mash;
 
     void Start() {
-        mash = new();
+        mash = new(3);
         mash.MakeBoard(tile, mashA, mashB);
         mash.BarSet(bar);
-        //
+        mash.AudioSet(se, click, prev, ops);
         //Debug.Log("" + -1 + "%" + 2 + "=" + (-1 % 2));
         //for (int x = -1; x <= 1; x++)
         //    for (int y = -1; y <= 1; y++)
