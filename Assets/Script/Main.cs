@@ -240,7 +240,7 @@ public class Main : MonoBehaviour {
     float time;                         //Œo‰ßŽžŠÔ
     void Start() {
         f = 0;
-        stage = 0;
+        stage = 10;
         miss = 0;
         undo = 0;
         time = 0;
@@ -278,8 +278,8 @@ public class Main : MonoBehaviour {
                     for (int i = 0; i < putStr.Length; i++) {
                         Invoke(putStr[i], 0.2f + 0.1f * i);
                     }
-                    Invoke("DelClear", 5.0f);
-                    Invoke("PutText", 6.0f);
+                    Invoke("DelClear", 3.0f);
+                    Invoke("PutText", 3.5f);
                 }
             }
         } else {
@@ -307,9 +307,8 @@ public class Main : MonoBehaviour {
             clearList[i].GetComponent<Fade>().DestInit();
         }
     }
-    void TextPut()
-    {
+    void PutText() {
         int score = 1919;
-        text.text = "Miss:" + miss + ",Undo:" + undo + "\nTime:" + time + "\n\tScore:" + score;
+        text.text = "Miss\t:" + miss + "\nUndo\t:" + undo + "\nTime\t:" + (int)time + "Sec\nScore\t:" + score + "\n\n\tThank you for playing!";
     }
 }
