@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class Main : MonoBehaviour {
     public AudioSource se;
@@ -12,7 +13,12 @@ public class Main : MonoBehaviour {
     public GameObject mashB;        //緑色のマシュのオブジェクト
     public GameObject bar;          //バーのオブジェクト
     public GameObject mark;         //進捗用のオブジェクト
-    private int stageCount;         //ステージ数
+    public GameObject noteA;
+    public GameObject noteC;
+    public GameObject noteE;
+    public GameObject noteL;
+    public GameObject noteR;
+    public TextMeshPro text;
     class Mash {
         //int counter;              //メイン関数を呼び出した回数
         int boardX;                 //盤面全体のXサイズ
@@ -25,6 +31,9 @@ public class Main : MonoBehaviour {
         string[] stageData;         //盤面の配置のデータ(テキスト)
         int[,] tileBoard;           //盤面の配置のデータ(0:無し、1:スタート地点、2以降:マシュ)
         int[,] rootBoard;           //盤面のルートのデータ
+        int undoCount;              //戻った回数
+        int missCount;              //ミスした回数
+        float startTime;            //始めた時間
         GameObject bar;             //バーのオブジェクト
         GameObject[,] objBoard;     //盤面のオブジェクトデータ
         Stack<GameObject> barList;  //バーのオブジェクトデータ
@@ -36,6 +45,9 @@ public class Main : MonoBehaviour {
         AudioClip ops;
         public Mash(int n) {
             //counter = 0;
+            startTime = Time.time;
+            undoCount = 0;
+            missCount = 0;
             boardX = 5;
             boardY = 5;
             tileBoard = new int[boardX, boardY];
@@ -81,9 +93,15 @@ public class Main : MonoBehaviour {
             //Debug.Log(key);
             if (key != 0) {
                 move = MoveBoard(key);
-                if (move == 0) se.PlayOneShot(ops);                 //動いてないとき
-                if (move == 1) se.PlayOneShot(click);               //動いたとき
-                if (move == 2) se.PlayOneShot(prev);                //戻ったとき
+                if (move == 0) {
+                    se.PlayOneShot(ops);                 //動いてないとき
+                    missCount++;
+                }
+                if (move == 1) se.PlayOneShot(click);    //動いたとき
+                if (move == 2) {
+                    se.PlayOneShot(prev);                //戻ったとき
+                    undoCount++;
+                }
             }
             return 0;
             //fade.SetColor("_EmissionColor", Color.HSVToRGB(0.0f, 0.0f, Mathf.Abs(Mathf.Sin(Time.time * 3.0f))));
@@ -200,23 +218,39 @@ public class Main : MonoBehaviour {
         public int StageGet() {
             return stageData.Length;            //ステージ数を返す
         }
+        public int MissGet() {
+            return missCount;                   //ミス回数を返す
+        }
+        public int UndoGet() {
+            return undoCount;                   //やり直し回数を返す
+        }
+        public float TimeGet() {
+            return Time.time - startTime;       //経過時間を返す
+        }
     }
 
     Mash mash;
     List<GameObject> markList;
+    List<GameObject> clearList;
     GameObject markObj;
-    int f, stage;
-
+    int f;                              //フラグ
+    int stage;                          //今のステージ
+    int stageCount;                     //ステージ数
+    int miss, undo;                     //ミス回数、やり直し回数
+    float time;                         //経過時間
     void Start() {
         f = 0;
         stage = 0;
+        miss = 0;
+        undo = 0;
+        time = 0;
         MashInit(stage);
         stageCount = mash.StageGet();
         markList = new List<GameObject>();
         for (int i = 0; i < stageCount; i++) {
             markList.Add(Instantiate(tile, new(-5.0f + 10.0f * i / (stageCount - 1), 0, 4.0f), Quaternion.identity));
         }
-        markObj = Instantiate(mark, new(-5.0f, 0, 4.0f), Quaternion.identity);
+        markObj = Instantiate(mark, new(-5.0f + 10.0f * stage / (stageCount - 1), 0, 4.0f), Quaternion.identity);
         //Debug.Log("" + -1 + "%" + 2 + "=" + (-1 % 2));
         //for (int x = -1; x <= 1; x++)
         //    for (int y = -1; y <= 1; y++)
@@ -227,14 +261,25 @@ public class Main : MonoBehaviour {
         if (f == 0) {
             if (mash.Main() == 1) {
                 f = 1;
+                miss += mash.MissGet();
+                undo += mash.UndoGet();
+                time += mash.TimeGet();
                 mash.DelBoard();
                 Destroy(markObj, markObj.GetComponent<Fade>().Wait());
                 markObj.GetComponent<Fade>().DestInit();
+                //全クリアしたとき
                 if (stage == stageCount - 1) {
                     for (int i = 0; i < stageCount; i++) {
                         Destroy(markList[i], markList[i].GetComponent<Fade>().Wait());
                         markList[i].GetComponent<Fade>().DestInit();
                     }
+                    clearList = new List<GameObject>();
+                    string[] putStr = {"PutC", "PutL", "PutE", "PutA", "PutR" };
+                    for (int i = 0; i < putStr.Length; i++) {
+                        Invoke(putStr[i], 0.2f + 0.1f * i);
+                    }
+                    Invoke("DelClear", 5.0f);
+                    Invoke("PutText", 6.0f);
                 }
             }
         } else {
@@ -250,5 +295,21 @@ public class Main : MonoBehaviour {
         mash.MakeBoard(tile, mashA, mashB);
         mash.BarSet(bar);
         mash.AudioSet(se, click, prev, ops);
+    }
+    void PutC() {clearList.Add(Instantiate(noteC, new(-5.5f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutL() {clearList.Add(Instantiate(noteL, new(-3.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutE() {clearList.Add(Instantiate(noteE, new(-1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutA() {clearList.Add(Instantiate(noteA, new(1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutR() {clearList.Add(Instantiate(noteR, new(3.5f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void DelClear() {
+        for (int i = 0; i < clearList.Count; i++) {
+            Destroy(clearList[i], clearList[i].GetComponent<Fade>().Wait());
+            clearList[i].GetComponent<Fade>().DestInit();
+        }
+    }
+    void TextPut()
+    {
+        int score = 1919;
+        text.text = "Miss:" + miss + ",Undo:" + undo + "\nTime:" + time + "\n\tScore:" + score;
     }
 }
