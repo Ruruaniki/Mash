@@ -107,6 +107,7 @@ GameObject:
   - component: {fileID: 7956434218103524452}
   - component: {fileID: 5191849807914416589}
   - component: {fileID: 8591179979302208191}
+  - component: {fileID: -14812246615473611}
   m_Layer: 0
   m_Name: RedCircle
   m_TagString: Untagged
@@ -204,5 +205,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe7304de29605974ead78f3378d45a2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-14812246615473611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8872550716832228126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eaf4c7b0836b2f4fb45021623165023, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

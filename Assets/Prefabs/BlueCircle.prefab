@@ -107,6 +107,7 @@ GameObject:
   - component: {fileID: 5823262357497629899}
   - component: {fileID: 1351532588147999854}
   - component: {fileID: 7085192253544430129}
+  - component: {fileID: 8126855847816056302}
   m_Layer: 0
   m_Name: BlueCircle
   m_TagString: Untagged
@@ -204,5 +205,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe7304de29605974ead78f3378d45a2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8126855847816056302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7573161954199420938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eaf4c7b0836b2f4fb45021623165023, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

@@ -89,7 +89,14 @@ public class Main : MonoBehaviour {
         public int Main() {
             int key, move;
             //クリア判定
-            if (posX == startX && posY == startY && CheckGoal() == 1) return 1;
+            if (posX == startX && posY == startY && rootBoard[posX, posY] != 0 && CheckGoal() == 1) return 1;
+            if (posX != startX || posY != startY) {
+                foreach (Vector2Int v in mashPos) {
+                    //if (tileBoard[v.x, v.y] == 2) objBoard[v.x, v.y].GetComponent<Renderer>().material.color = new Color(0.5801887f, 0.6586151f, 1.0f);
+                    //if (tileBoard[v.x, v.y] == 3) objBoard[v.x, v.y].GetComponent<Renderer>().material.color = new Color(1.0f, 0.5801887f, 0.5801887f);
+                    objBoard[v.x, v.y].GetComponent<MatChg>().ChgStop();
+                }
+            }
             key = InputKey();
             //Debug.Log(key);
             if (key != 0) {
@@ -114,6 +121,7 @@ public class Main : MonoBehaviour {
             if (Input.GetKeyDown(KeyCode.DownArrow)) flag += 2;
             if (Input.GetKeyDown(KeyCode.RightArrow)) flag += 4;
             if (Input.GetKeyDown(KeyCode.UpArrow)) flag += 8;
+            if (Input.GetKeyDown(KeyCode.RightControl)) flag += 16;
             return flag;
         }
         int MoveBoard(int key) {
@@ -122,6 +130,10 @@ public class Main : MonoBehaviour {
             if ((key & 2) == 2 && posY > 0) y = -1;
             if ((key & 4) == 4 && posX < boardX - 1) x = 1;
             if ((key & 8) == 8 && posY < boardY - 1) y = 1;
+            if ((key & 16) == 16 && rootBoard[posX, posY] != 0) {
+                x = -1 * (rootBoard[posX, posY] + 1) % 2;
+                y = -1 * rootBoard[posX, posY] % 2;
+            }
             if (((x ^ y) & 1) == 1) {                                               //xかyがどちらか片方だけ0のとき
                 if (rootBoard[posX, posY] + 2 * x + y == 0) {                       //バーを撤去するとき
                     rootBoard[posX, posY] = 0;
@@ -168,8 +180,18 @@ public class Main : MonoBehaviour {
         }
         int CheckGoal() {
             int flag = 0;
+            float f = Mathf.Sin(Time.time * 2) / 4 + 0.25f;
+            Color c = new(f, f, f);
             foreach (Vector2Int v in mashPos) {
-                if (rootBoard[v.x, v.y] != 0) flag++;
+                if (rootBoard[v.x, v.y] != 0) {
+                    flag++;
+                } else {
+                    //objBoard[v.x, v.y].GetComponent<Renderer>().material.color = c;
+                    //if (tileBoard[v.x, v.y] == 2) objBoard[v.x, v.y].GetComponent<Renderer>().material.color = new Color(0.5801887f, 0.6586151f, 1.0f) - c;
+                    //if (tileBoard[v.x, v.y] == 3) objBoard[v.x, v.y].GetComponent<Renderer>().material.color = new Color(1.0f, 0.5801887f, 0.5801887f) - c;
+                    //objBoard[v.x, v.y].GetComponent<Fade>().RotInit();
+                    objBoard[v.x, v.y].GetComponent<MatChg>().ChgInit();
+                }
             }
             //Debug.Log(flag);
             if (flag == mashPos.Count) return 1;
@@ -210,7 +232,8 @@ public class Main : MonoBehaviour {
                 Destroy(barList.Peek(), barList.Peek().GetComponent<Fade>().Wait());
                 barList.Pop().GetComponent<Fade>().DestInit();
             }
-            Destroy(objStart);
+            Destroy(objStart, objStart.GetComponent<Fade>().Wait());
+            objStart.GetComponent<Fade>().DestInit();
         }
         public void BarSet(GameObject barObj) {
             bar = barObj;
@@ -220,9 +243,6 @@ public class Main : MonoBehaviour {
             click = se1;
             prev = se2;
             ops = se3;
-        }
-        public int StageGet() {
-            return stageData.Length;            //ステージ数を返す
         }
         public int MissGet() {
             return missCount;                   //ミス回数を返す
@@ -236,27 +256,19 @@ public class Main : MonoBehaviour {
     }
 
     Mash mash;
-    List<GameObject> markList;
-    List<GameObject> clearList;
+    Stack<GameObject> markList = new Stack<GameObject>();
+    Stack<GameObject> clearList = new Stack<GameObject>();
     GameObject markObj;
     int f;                              //フラグ
     int stage;                          //今のステージ
-    int stageCount;                     //ステージ数
+    int stageCount;                     //ステージの個数
     int miss, undo;                     //ミス回数、やり直し回数
     float time;                         //経過時間
     void Start() {
-        f = 0;
+        f = 90;
         stage = 0;
-        miss = 0;
-        undo = 0;
-        time = 0;
-        MashInit(stage);
-        stageCount = mash.StageGet();
-        markList = new List<GameObject>();
-        for (int i = 0; i < stageCount; i++) {
-            markList.Add(Instantiate(tile, new(-5.0f + 10.0f * i / (stageCount - 1), 0, 4.0f), Quaternion.identity));
-        }
-        markObj = Instantiate(mark, new(-5.0f + 10.0f * stage / (stageCount - 1), 0, 4.0f), Quaternion.identity);
+        stageCount = 10;
+        GameInit();
         //Debug.Log("" + -1 + "%" + 2 + "=" + (-1 % 2));
         //for (int x = -1; x <= 1; x++)
         //    for (int y = -1; y <= 1; y++)
@@ -264,8 +276,24 @@ public class Main : MonoBehaviour {
     }
 
     void Update() {
+        int debug = 0;
+        for (int i = 0; i < 12; i++) {
+            if (Input.GetKeyDown(KeyCode.Alpha0 + i)) {
+                if (stage == stageCount + 1) {
+                    if (i >= stageCount) break;
+                    f = 90;
+                    CancelInvoke();
+                    DelClear();
+                    GameInit();
+                }
+                stage = i == 0 ? 9 : i - 1;
+                debug = 1;
+                break;
+            }
+        }
         if (f == 0) {
-            if (mash.Main() == 1) {
+            //クリアしたとき
+            if (mash.Main() == 1 || debug == 1) {
                 f = 1;
                 miss += mash.MissGet();
                 undo += mash.UndoGet();
@@ -273,27 +301,40 @@ public class Main : MonoBehaviour {
                 mash.DelBoard();
                 Destroy(markObj, markObj.GetComponent<Fade>().Wait());
                 markObj.GetComponent<Fade>().DestInit();
-                //全クリアしたとき
-                if (stage == stageCount - 1) {
-                    for (int i = 0; i < stageCount; i++) {
-                        Destroy(markList[i], markList[i].GetComponent<Fade>().Wait());
-                        markList[i].GetComponent<Fade>().DestInit();
+                //全てクリアしたとき
+                if (stage == stageCount) {
+                    for (; markList.Count > 0;) {
+                        Destroy(markList.Peek(), markList.Peek().GetComponent<Fade>().Wait());
+                        markList.Pop().GetComponent<Fade>().DestInit();
                     }
-                    clearList = new List<GameObject>();
-                    string[] putStr = {"PutC", "PutL", "PutE", "PutA", "PutR" };
+                    string[] putStr = { "PutC", "PutL", "PutE", "PutA", "PutR" };
                     for (int i = 0; i < putStr.Length; i++) {
-                        Invoke(putStr[i], 0.2f + 0.1f * i);
+                        Invoke(putStr[i], 0.3f + 0.1f * i);
                     }
                     Invoke(nameof(DelClear), 3.0f);
                     Invoke(nameof(PutText), 3.5f);
+                    stage++;
                 }
             }
         } else {
-            if (stage < stageCount - 1) {
-                f = 0;
-                MashInit(++stage);
-                markObj = Instantiate(mark, new(-5.0f + 10.0f * stage / (stageCount - 1), 0, 4.0f), Quaternion.identity);
+            if (f < 90) {
+                f++;
+            } else {
+                if (stage < stageCount) {
+                    f = 0;
+                    MashInit(stage);        //ステージ作成
+                    stage++;
+                }
             }
+        }
+    }
+    void GameInit() {
+        miss = 0;
+        undo = 0;
+        time = 0;
+        text.text = "";
+        for (int i = 0; i < stageCount; i++) {
+            markList.Push(Instantiate(tile, new(-5.0f + 10.0f * i / (stageCount - 1), 0, 4.0f), Quaternion.identity));
         }
     }
     void MashInit(int n) {
@@ -301,20 +342,21 @@ public class Main : MonoBehaviour {
         mash.MakeBoard(tile, mashA, mashB, start);
         mash.BarSet(bar);
         mash.AudioSet(se, click, prev, ops);
+        markObj = Instantiate(mark, new(-5.0f + 10.0f * stage / (stageCount - 1), 0, 4.0f), Quaternion.identity);
     }
-    void PutC() {clearList.Add(Instantiate(noteC, new(-5.5f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
-    void PutL() {clearList.Add(Instantiate(noteL, new(-3.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
-    void PutE() {clearList.Add(Instantiate(noteE, new(-1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
-    void PutA() {clearList.Add(Instantiate(noteA, new(1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
-    void PutR() {clearList.Add(Instantiate(noteR, new(3.5f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutC() {clearList.Push(Instantiate(noteC, new(-5.5f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutL() {clearList.Push(Instantiate(noteL, new(-3.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutE() {clearList.Push(Instantiate(noteE, new(-1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutA() {clearList.Push(Instantiate(noteA, new(1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutR() {clearList.Push(Instantiate(noteR, new(3.5f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
     void DelClear() {
-        for (int i = 0; i < clearList.Count; i++) {
-            Destroy(clearList[i], clearList[i].GetComponent<Fade>().Wait());
-            clearList[i].GetComponent<Fade>().DestInit();
+        for (; clearList.Count > 0;) {
+            Destroy(clearList.Peek(), clearList.Peek().GetComponent<Fade>().Wait());
+            clearList.Pop().GetComponent<Fade>().DestInit();
         }
     }
     void PutText() {
         int score = 10000 - miss - undo - (int)time;
-        text.text = "Miss\t" + miss + "\nUndo\t" + undo + "\nTime\t" + ((int)time / 60) + ":" + ((int)time % 60) + "\nScore\t" + score + "\n\n\tThank you for playing!";
+        text.text = "Miss\t" + miss + "\nUndo\t" + undo + "\nTime\t" + ((int)time / 60) + ":" + ((int)time % 60) + "\nScore\t" + score + "\n\n      Thank you for playing!";
     }
 }

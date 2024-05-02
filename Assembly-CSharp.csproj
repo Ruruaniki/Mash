@@ -59,6 +59,7 @@
     <Compile Include="Assets\Script\Main.cs" />
     <Compile Include="Assets\Script\Main_bak.cs" />
     <Compile Include="Assets\Script\Fade.cs" />
+    <Compile Include="Assets\Script\MatChg.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

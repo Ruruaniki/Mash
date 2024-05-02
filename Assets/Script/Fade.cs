@@ -18,7 +18,7 @@ public class Fade : MonoBehaviour
 
     }
     void Update() {
-        if (flag <= 2) {
+        if (flag <= 3) {
             if (d >= 0 && d <= 1.0f) {
                 d = (Time.time - c) * p;
                 if (d > 1.0f) d = 1.0f;
@@ -26,7 +26,7 @@ public class Fade : MonoBehaviour
                 if (flag % 2 == 1) transform.localScale = scale * (-2.0f * (1.0f - d) * (1.0f - d) + 3.0f * (1.0f - d));
             }
             if (flag / 2 == 1) {
-                transform.Rotate(0, 0.6f, 0);
+                transform.Rotate(0, Time.deltaTime * 100.0f, 0);
                 transform.position = new(pos.x, pos.y + Mathf.Sin(Time.time) / 8.0f, pos.z);
             }
         }
@@ -41,5 +41,9 @@ public class Fade : MonoBehaviour
     }
     public void RotInit() {
         flag = 2;
+    }
+    public void StopInit() {
+        flag = 0;
+        transform.position = pos;
     }
 }
