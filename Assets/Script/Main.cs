@@ -4,21 +4,22 @@ using UnityEngine;
 using TMPro;
 
 public class Main : MonoBehaviour {
-    public AudioSource se;
-    public AudioClip click;
-    public AudioClip prev;
-    public AudioClip ops;
+    public AudioSource se;          //オーディオソース
+    public AudioClip click;         //移動時の効果音
+    public AudioClip prev;          //やり直し時の効果音
+    public AudioClip ops;           //ミス時の効果音
     public GameObject tile;         //タイルのオブジェクト
     public GameObject mashA;        //青色のマシュのオブジェクト
     public GameObject mashB;        //緑色のマシュのオブジェクト
     public GameObject bar;          //バーのオブジェクト
     public GameObject mark;         //進捗用のオブジェクト
-    public GameObject noteA;
-    public GameObject noteC;
-    public GameObject noteE;
-    public GameObject noteL;
-    public GameObject noteR;
-    public TextMeshPro text;
+    public GameObject start;        //スタートマーカーのオブジェクト
+    public GameObject noteA;        //文字のオブジェクトデータ
+    public GameObject noteC;        //文字のオブジェクトデータ
+    public GameObject noteE;        //文字のオブジェクトデータ
+    public GameObject noteL;        //文字のオブジェクトデータ
+    public GameObject noteR;        //文字のオブジェクトデータ
+    public TextMeshPro text;        //テキスト表示用の変数
     class Mash {
         //int counter;              //メイン関数を呼び出した回数
         int boardX;                 //盤面全体のXサイズ
@@ -38,11 +39,12 @@ public class Main : MonoBehaviour {
         GameObject[,] objBoard;     //盤面のオブジェクトデータ
         Stack<GameObject> barList;  //バーのオブジェクトデータ
         List<Vector2Int> mashPos;   //マシュの座標データのリスト
-        Material fade;              //選択中のフェード処理
-        AudioSource se;
-        AudioClip click;
-        AudioClip prev;
-        AudioClip ops;
+        //Material fade;            //選択中のフェード処理
+        GameObject objStart;        //スタートマーカーのオブジェクトデータ
+        AudioSource se;             //オーディオソース
+        AudioClip click;            //移動時の効果音
+        AudioClip prev;             //やり直し時の効果音
+        AudioClip ops;              //ミス時の効果音
         public Mash(int n) {
             //counter = 0;
             startTime = Time.time;
@@ -58,11 +60,10 @@ public class Main : MonoBehaviour {
             stageSelect = n;
             stageData = new string[] {
                 "0000000200000000010000000",
-                "0000001020000000202000000",
-                "0002000020001000000000020",
-                "2000202020000000202020102",
                 "0000003000000000001000000",
+                "0000001020000000202000000",
                 "0030000000300030000000100",
+                "2000202020000000202020102",
                 "0000003000301030300300000",
                 "0300000103030303000000030",
                 "0003000000001032002003000",
@@ -135,7 +136,7 @@ public class Main : MonoBehaviour {
                     x *= (rootBoard[posX, posY] + tileBoard[posX, posY]) % 2;
                     y *= (rootBoard[posX, posY] + tileBoard[posX, posY] + 1) % 2;
                 }
-                if (rootBoard[posX + x, posY + y] == 0) {                       //新しくバーを設置するとき
+                if (rootBoard[posX + x, posY + y] == 0) {                           //新しくバーを設置するとき
                     posX += x;
                     posY += y;
                     //バーオブジェクトを生成
@@ -147,7 +148,7 @@ public class Main : MonoBehaviour {
                     //pos = objBoard[posX, posY].transform.position;
                     //pos = new(pos.x, pos.y - 0.05f, pos.z);
                     //objBoard[posX, posY].transform.position = pos;
-                    rootBoard[posX, posY] = 2 * x + y;                          //上:-1、下:1、左:-2、右:2
+                    rootBoard[posX, posY] = 2 * x + y;                              //上:-1、下:1、左:-2、右:2
                     return 1;
                 }
                 //フェードタイル変更
@@ -167,26 +168,30 @@ public class Main : MonoBehaviour {
         }
         int CheckGoal() {
             int flag = 0;
-            foreach (Vector2Int v in mashPos)
-            {
+            foreach (Vector2Int v in mashPos) {
                 if (rootBoard[v.x, v.y] != 0) flag++;
             }
             //Debug.Log(flag);
             if (flag == mashPos.Count) return 1;
             return 0;
         }
-        public void MakeBoard(GameObject tile, GameObject mashA, GameObject mashB) {
+        public void MakeBoard(GameObject tile, GameObject mashA, GameObject mashB, GameObject start) {
             Vector3 pos;
             for (int x = 0; x < boardX; x++) {
                 for (int y = 0; y < boardY; y++) {
                     if (tileBoard[x, y] >= 2) {
                         //マシュの配置
-                        pos = new Vector3(1.0f * (x - boardX / 2), 0.0f, 1.0f * (y - boardY / 2));
+                        pos = new Vector3(1.0f * (x - boardX / 2), 0, 1.0f * (y - boardY / 2));
                         objBoard[x, y] = Instantiate(tileBoard[x, y] == 2 ? mashA : mashB, pos, Quaternion.identity);
                     } else {
                         //タイルの配置
                         pos = new Vector3(1.0f * (x - boardX / 2), -0.05f, 1.0f * (y - boardY / 2));
                         objBoard[x, y] = Instantiate(tile, pos, Quaternion.identity);
+                        if (tileBoard[x, y] == 1) {
+                            pos = new Vector3(1.0f * (x - boardX / 2), 0.3f, 1.0f * (y - boardY / 2));
+                            objStart = Instantiate(start, pos, Quaternion.identity);
+                            objStart.GetComponent<Fade>().RotInit();
+                        }
                     }
                 }
             }
@@ -205,6 +210,7 @@ public class Main : MonoBehaviour {
                 Destroy(barList.Peek(), barList.Peek().GetComponent<Fade>().Wait());
                 barList.Pop().GetComponent<Fade>().DestInit();
             }
+            Destroy(objStart);
         }
         public void BarSet(GameObject barObj) {
             bar = barObj;
@@ -240,7 +246,7 @@ public class Main : MonoBehaviour {
     float time;                         //経過時間
     void Start() {
         f = 0;
-        stage = 10;
+        stage = 0;
         miss = 0;
         undo = 0;
         time = 0;
@@ -278,8 +284,8 @@ public class Main : MonoBehaviour {
                     for (int i = 0; i < putStr.Length; i++) {
                         Invoke(putStr[i], 0.2f + 0.1f * i);
                     }
-                    Invoke("DelClear", 3.0f);
-                    Invoke("PutText", 3.5f);
+                    Invoke(nameof(DelClear), 3.0f);
+                    Invoke(nameof(PutText), 3.5f);
                 }
             }
         } else {
@@ -292,7 +298,7 @@ public class Main : MonoBehaviour {
     }
     void MashInit(int n) {
         mash = new(n);
-        mash.MakeBoard(tile, mashA, mashB);
+        mash.MakeBoard(tile, mashA, mashB, start);
         mash.BarSet(bar);
         mash.AudioSet(se, click, prev, ops);
     }
@@ -308,7 +314,7 @@ public class Main : MonoBehaviour {
         }
     }
     void PutText() {
-        int score = 1919;
-        text.text = "Miss\t:" + miss + "\nUndo\t:" + undo + "\nTime\t:" + (int)time + "Sec\nScore\t:" + score + "\n\n\tThank you for playing!";
+        int score = 10000 - miss - undo - (int)time;
+        text.text = "Miss\t" + miss + "\nUndo\t" + undo + "\nTime\t" + ((int)time / 60) + ":" + ((int)time % 60) + "\nScore\t" + score + "\n\n\tThank you for playing!";
     }
 }
