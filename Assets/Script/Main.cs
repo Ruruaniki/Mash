@@ -358,13 +358,17 @@ public class Main : MonoBehaviour {
         }
     }
     void PutText() {
-        int score = 10000 - miss - undo - (int)time;
-        text.text += "Miss\t\t" + miss;
-        text.text += "\nUndo\t" + undo;
-        text.text += "\nTime\t\t" + ((int)time / 60) + ":";
-        text.text += ((int)time % 60) < 10 ? "0" : "";
-        text.text += "" + ((int)time % 60);
-        text.text += "\nScore\t" + score;
+        int m = ScoreCalc(miss);
+        int u = ScoreCalc(undo);
+        int t = ScoreCalc((int)time / 4);
+        text.text += "Ability\t\t" + m + "/100";
+        text.text += "\nAgility\t\t" + t + "/100";
+        text.text += "\nAccuracy\t" + u + "/100";
+        text.text += "\nScore\t\t" + (m + u + t) + "/300";
         text.text += "\n\t    Thank you\n\t  for playing!";
+    }
+    int ScoreCalc(int n) {
+        float t = Mathf.Exp(-0.01f * n);
+        return (int)(200.0f * (t / (t + 1)));
     }
 }
