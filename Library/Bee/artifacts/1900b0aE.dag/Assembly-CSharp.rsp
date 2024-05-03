@@ -354,7 +354,6 @@
 -r:"Library/Bee/artifacts/1900b0aE.dag/UnityEngine.UI.ref.dll"
 "Assets/Script/Fade.cs"
 "Assets/Script/Main.cs"
-"Assets/Script/Main_bak.cs"
 "Assets/Script/MatChg.cs"
 -langversion:9.0
 
