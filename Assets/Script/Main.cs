@@ -70,15 +70,15 @@ public class Main : MonoBehaviour {
                 "0300000203021303000200030",
                 "2033032003021033020022022",
             };
-            for (int x = 0; x < boardX; x++) {
-                for (int y = 0; y < boardY; y++) {
+            for (int y = 0; y < boardY; y++) {
+                for (int x = 0; x < boardX; x++) {
                     rootBoard[x, y] = 0;
-                    tileBoard[x, y] = int.Parse(stageData[stageSelect].Substring(x * boardX + y, 1));
+                    tileBoard[x, y] = int.Parse(stageData[stageSelect].Substring(x + boardX * y, 1));
                     if (tileBoard[x, y] == 1) {
                         startX = x;
-                        startY = y;
-                        posX = x;
-                        posY = y;
+                        startY = y;//boardY - y - 1;
+                        posX = startX;
+                        posY = startY;
                     }
                     if (tileBoard[x, y] >= 2) {
                         mashPos.Add(new(x, y));
@@ -118,9 +118,9 @@ public class Main : MonoBehaviour {
         int InputKey() {
             int flag = 0;
             if (Input.GetKeyDown(KeyCode.LeftArrow)) flag += 1;
-            if (Input.GetKeyDown(KeyCode.DownArrow)) flag += 2;
+            if (Input.GetKeyDown(KeyCode.UpArrow)) flag += 2;
             if (Input.GetKeyDown(KeyCode.RightArrow)) flag += 4;
-            if (Input.GetKeyDown(KeyCode.UpArrow)) flag += 8;
+            if (Input.GetKeyDown(KeyCode.DownArrow)) flag += 8;
             if (Input.GetKeyDown(KeyCode.RightControl)) flag += 16;
             return flag;
         }
@@ -152,7 +152,7 @@ public class Main : MonoBehaviour {
                     posX += x;
                     posY += y;
                     //バーオブジェクトを生成
-                    Vector3 pos = new(1.0f * (posX - 0.5f * x - boardX / 2), -0.1f, 1.0f * (posY - 0.5f * y - boardY / 2));
+                    Vector3 pos = new(1.0f * (posX - 0.5f * x - boardX / 2), -0.1f, -1.0f * (posY - 0.5f * y - boardY / 2));
                     //Vector3 pos = new(1.0f * (posX - boardX / 2), -0.1f, 1.0f * (posY - boardY / 2));
                     Quaternion rot = Quaternion.Euler(0, 90f * x, 0);
                     //Quaternion rot = Quaternion.identity;
@@ -171,7 +171,7 @@ public class Main : MonoBehaviour {
                 //string debug = "";
                 //for (y = boardY - 1; y >= 0; y--) {
                 //    for (x = 0; x < boardX; x++)
-                //        debug += "" + (rootBoard[x, y] != 0 ? (rootBoard[x, y] + 3) : 0);
+                //        debug += "" + tileBoard[x, y];
                 //    debug += "\n";
                 //}
                 //Debug.Log(debug);
@@ -180,8 +180,8 @@ public class Main : MonoBehaviour {
         }
         int CheckGoal() {
             int flag = 0;
-            float f = Mathf.Sin(Time.time * 2) / 4 + 0.25f;
-            Color c = new(f, f, f);
+            //float f = Mathf.Sin(Time.time * 2) / 4 + 0.25f;
+            //Color c = new(f, f, f);
             foreach (Vector2Int v in mashPos) {
                 if (rootBoard[v.x, v.y] != 0) {
                     flag++;
@@ -199,18 +199,18 @@ public class Main : MonoBehaviour {
         }
         public void MakeBoard(GameObject tile, GameObject mashA, GameObject mashB, GameObject start) {
             Vector3 pos;
-            for (int x = 0; x < boardX; x++) {
-                for (int y = 0; y < boardY; y++) {
+            for (int y = 0; y < boardY; y++) {
+                for (int x = 0; x < boardX; x++) {
                     if (tileBoard[x, y] >= 2) {
                         //マシュの配置
-                        pos = new Vector3(1.0f * (x - boardX / 2), 0, 1.0f * (y - boardY / 2));
+                        pos = new Vector3(1.0f * (x - boardX / 2), 0, -1.0f * (y - boardY / 2));
                         objBoard[x, y] = Instantiate(tileBoard[x, y] == 2 ? mashA : mashB, pos, Quaternion.identity);
                     } else {
                         //タイルの配置
-                        pos = new Vector3(1.0f * (x - boardX / 2), -0.05f, 1.0f * (y - boardY / 2));
+                        pos = new Vector3(1.0f * (x - boardX / 2), -0.05f, -1.0f * (y - boardY / 2));
                         objBoard[x, y] = Instantiate(tile, pos, Quaternion.identity);
                         if (tileBoard[x, y] == 1) {
-                            pos = new Vector3(1.0f * (x - boardX / 2), 0.3f, 1.0f * (y - boardY / 2));
+                            pos = new Vector3(1.0f * (x - boardX / 2), 0.3f, -1.0f * (y - boardY / 2));
                             objStart = Instantiate(start, pos, Quaternion.identity);
                             objStart.GetComponent<Fade>().RotInit();
                         }
@@ -222,8 +222,8 @@ public class Main : MonoBehaviour {
             //fade.EnableKeyword("_EMISSION");
         }
         public void DelBoard() {
-            for (int x = 0; x < boardX; x++) {
-                for (int y = 0; y < boardY; y++) {
+            for (int y = 0; y < boardY; y++) {
+                for (int x = 0; x < boardX; x++) {
                     Destroy(objBoard[x, y], objBoard[x, y].GetComponent<Fade>().Wait());
                     objBoard[x, y].GetComponent<Fade>().DestInit();
                 }
@@ -277,18 +277,20 @@ public class Main : MonoBehaviour {
 
     void Update() {
         int debug = 0;
-        for (int i = 0; i < 12; i++) {
-            if (Input.GetKeyDown(KeyCode.Alpha0 + i)) {
-                if (stage == stageCount + 1) {
-                    if (i >= stageCount) break;
-                    f = 90;
-                    CancelInvoke();
-                    DelClear();
-                    GameInit();
+        if (f == 0 || f == 90) {
+            for (int i = 0; i < 12; i++) {
+                if (Input.GetKeyDown(KeyCode.Alpha0 + i)) {
+                    if (stage == stageCount + 1) {
+                        if (i >= stageCount) break;
+                        f = 90;
+                        CancelInvoke();
+                        DelClear();
+                        GameInit();
+                    }
+                    stage = i == 0 ? 9 : i - 1;
+                    debug = 1;
+                    break;
                 }
-                stage = i == 0 ? 9 : i - 1;
-                debug = 1;
-                break;
             }
         }
         if (f == 0) {
@@ -357,6 +359,12 @@ public class Main : MonoBehaviour {
     }
     void PutText() {
         int score = 10000 - miss - undo - (int)time;
-        text.text = "Miss\t" + miss + "\nUndo\t" + undo + "\nTime\t" + ((int)time / 60) + ":" + ((int)time % 60) + "\nScore\t" + score + "\n\n      Thank you for playing!";
+        text.text += "Miss\t\t" + miss;
+        text.text += "\nUndo\t" + undo;
+        text.text += "\nTime\t\t" + ((int)time / 60) + ":";
+        text.text += ((int)time % 60) < 10 ? "0" : "";
+        text.text += "" + ((int)time % 60);
+        text.text += "\nScore\t" + score;
+        text.text += "\n\t    Thank you\n\t  for playing!";
     }
 }
