@@ -264,8 +264,9 @@ public class Main : MonoBehaviour {
     int stageCount;                     //ステージの個数
     int miss, undo;                     //ミス回数、やり直し回数
     float time;                         //経過時間
+    float scene;                        //シーンチェンジ秒数
     void Start() {
-        f = 90;
+        f = 2;
         stage = 0;
         stageCount = 10;
         GameInit();
@@ -277,7 +278,7 @@ public class Main : MonoBehaviour {
 
     void Update() {
         int debug = 0;
-        if (f == 0 || f == 90) {
+        if (f == 0 || f == 2) {
             for (int i = 0; i < 12; i++) {
                 if (Input.GetKeyDown(KeyCode.Alpha0 + i)) {
                     if (stage == stageCount + 1) {
@@ -293,41 +294,46 @@ public class Main : MonoBehaviour {
                 }
             }
         }
-        if (f == 0) {
-            //クリアしたとき
-            if (mash.Main() == 1 || debug == 1) {
-                f = 1;
-                miss += mash.MissGet();
-                undo += mash.UndoGet();
-                time += mash.TimeGet();
-                mash.DelBoard();
-                Destroy(markObj, markObj.GetComponent<Fade>().Wait());
-                markObj.GetComponent<Fade>().DestInit();
-                //全てクリアしたとき
-                if (stage == stageCount) {
-                    for (; markList.Count > 0;) {
-                        Destroy(markList.Peek(), markList.Peek().GetComponent<Fade>().Wait());
-                        markList.Pop().GetComponent<Fade>().DestInit();
+        switch (f) {
+            case 0:                                                             //プレイ中
+                //クリアしたとき
+                if (mash.Main() == 1 || debug == 1) {
+                    f = 1;
+                    miss += mash.MissGet();
+                    undo += mash.UndoGet();
+                    time += mash.TimeGet();
+                    mash.DelBoard();
+                    Destroy(markObj, markObj.GetComponent<Fade>().Wait());
+                    markObj.GetComponent<Fade>().DestInit();
+                    //全てクリアしたとき
+                    if (stage == stageCount) {
+                        for (; markList.Count > 0;) {
+                            Destroy(markList.Peek(), markList.Peek().GetComponent<Fade>().Wait());
+                            markList.Pop().GetComponent<Fade>().DestInit();
+                        }
+                        string[] putStr = { "PutC", "PutL", "PutE", "PutA", "PutR" };
+                        for (int i = 0; i < putStr.Length; i++) {
+                            Invoke(putStr[i], 0.3f + 0.1f * i);
+                        }
+                        Invoke(nameof(DelClear), 3.0f);
+                        Invoke(nameof(PutText), 3.5f);
+                        stage++;
                     }
-                    string[] putStr = { "PutC", "PutL", "PutE", "PutA", "PutR" };
-                    for (int i = 0; i < putStr.Length; i++) {
-                        Invoke(putStr[i], 0.3f + 0.1f * i);
-                    }
-                    Invoke(nameof(DelClear), 3.0f);
-                    Invoke(nameof(PutText), 3.5f);
-                    stage++;
                 }
-            }
-        } else {
-            if (f < 90) {
-                f++;
-            } else {
+                break;
+            case 1:                                                             //ステージ移行
+                scene += Time.deltaTime;
+                if (scene > 0.4f) f = 2;
+                break;
+            case 2:                                                             //ステージ生成
                 if (stage < stageCount) {
                     f = 0;
                     MashInit(stage);        //ステージ作成
                     stage++;
                 }
-            }
+                break;
+            default:
+                break;
         }
     }
     void GameInit() {
@@ -340,6 +346,7 @@ public class Main : MonoBehaviour {
         }
     }
     void MashInit(int n) {
+        scene = 0;
         mash = new(n);
         mash.MakeBoard(tile, mashA, mashB, start);
         mash.BarSet(bar);
@@ -350,7 +357,7 @@ public class Main : MonoBehaviour {
     void PutL() {clearList.Push(Instantiate(noteL, new(-3.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
     void PutE() {clearList.Push(Instantiate(noteE, new(-1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
     void PutA() {clearList.Push(Instantiate(noteA, new(1.0f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
-    void PutR() {clearList.Push(Instantiate(noteR, new(3.5f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
+    void PutR() {clearList.Push(Instantiate(noteR, new(3.3f, 0.5f, 0), Quaternion.Euler(-90.0f, 180.0f, 0))); }
     void DelClear() {
         for (; clearList.Count > 0;) {
             Destroy(clearList.Peek(), clearList.Peek().GetComponent<Fade>().Wait());
@@ -361,11 +368,11 @@ public class Main : MonoBehaviour {
         int m = ScoreCalc(miss);
         int u = ScoreCalc(undo);
         int t = ScoreCalc((int)time / 4);
-        text.text += "Ability\t\t" + m + "/100";
-        text.text += "\nAgility\t\t" + t + "/100";
-        text.text += "\nAccuracy\t" + u + "/100";
-        text.text += "\nScore\t\t" + (m + u + t) + "/300";
-        text.text += "\n\t    Thank you\n\t  for playing!";
+        text.text += "Ability\t\t" + m + "/100\n";
+        text.text += "Agility\t\t" + t + "/100\n";
+        text.text += "Accuracy\t" + u + "/100\n";
+        text.text += "Score\t\t" + (m + u + t) + "/300\n\n";
+        text.text += "\t   Thank you\n\t for playing!";
     }
     int ScoreCalc(int n) {
         float t = Mathf.Exp(-0.01f * n);
