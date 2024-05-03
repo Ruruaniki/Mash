@@ -283,7 +283,7 @@ public class Main : MonoBehaviour {
                 if (Input.GetKeyDown(KeyCode.Alpha0 + i)) {
                     if (stage == stageCount + 1) {
                         if (i >= stageCount) break;
-                        f = 90;
+                        f = 2;
                         CancelInvoke();
                         DelClear();
                         GameInit();
